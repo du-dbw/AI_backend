@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Page</title>
+    <style>
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<h2>Our Services</h2>
+
+<div class="button-container">
+    <button id="getHome">GET Home</button>
+    <button id="getHello">GET Hello (with name)</button>
+    <button id="getHelloDefault">GET Hello (default name)</button>
+    <button id="postSubmit">POST Submit</button>
+</div>
+
+<div class="result" id="result"></div>
+
+<script>
+    // 测试 GET / 请求
+    document.getElementById('getHome').addEventListener('click', function() {
+        fetch('http://localhost:8080/')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error;
+            });
+    });
+
+    // 测试 GET /hello?name=John 请求
+    document.getElementById('getHello').addEventListener('click', function() {
+        fetch('http://localhost:8080/hello?name=John')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error;
+            });
+    });
+
+    // 测试 GET /hello 请求（使用默认值）
+    document.getElementById('getHelloDefault').addEventListener('click', function() {
+        fetch('http://localhost:8080/hello')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error;
+            });
+    });
+
+    // 测试 POST /submit 请求
+    document.getElementById('postSubmit').addEventListener('click', function() {
+        fetch('http://localhost:8080/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: '' // POST请求通常需要一个请求体，这里可以留空或发送一些数据
+        })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('result').innerText = data;
+            })
+            .catch(error => {
+                document.getElementById('result').innerText = 'Error: ' + error;
+            });
+    });
+</script>
+</body>
+</html>
