@@ -82,9 +82,7 @@ public class Works {
         return this.comments;
     }
 
-    // Getter 和 Setter 方法（如果使用Lombok的@Data注解，这些方法可以自动生成）
 
-    // 以下是手动编写的getter/setter方法示例（如果需要）
     public Long getWorkId() {
         return workId;
     }
