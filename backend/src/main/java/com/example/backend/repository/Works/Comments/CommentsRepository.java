@@ -1,6 +1,6 @@
-package com.example.backend.repository.Comments;
+package com.example.backend.repository.Works.Comments;
 
-import com.example.backend.entity.Comments.Comments;
+import com.example.backend.entity.Works.Comments.Comments;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

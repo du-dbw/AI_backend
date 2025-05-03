@@ -1,8 +1,8 @@
-package com.example.backend.Follow;
+package com.example.backend.Users.Follow;
 
-import com.example.backend.dto.Follow.FollowRequest;
+import com.example.backend.dto.Users.Follow.FollowRequest;
 import com.example.backend.dto.Response;
-import com.example.backend.entity.Follow.Follow;
+import com.example.backend.entity.Users.Follow.Follow;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;

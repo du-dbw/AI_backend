@@ -1,6 +1,6 @@
-package com.example.backend.repository.Likes;
+package com.example.backend.repository.Works.Likes;
 
-import com.example.backend.entity.Likes.Likes;
+import com.example.backend.entity.Works.Likes.Likes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

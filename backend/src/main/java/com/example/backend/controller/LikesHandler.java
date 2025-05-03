@@ -1,11 +1,10 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Likes.LikesRequest;
+import com.example.backend.dto.Works.Likes.LikesRequest;
 import com.example.backend.dto.Response;
-import com.example.backend.entity.Likes.Likes;
+import com.example.backend.entity.Works.Likes.Likes;
 import com.example.backend.entity.Works.Works;
-import com.example.backend.repository.Likes.LikesRepository;
-import com.example.backend.entity.Works.Works;
+import com.example.backend.repository.Works.Likes.LikesRepository;
 import com.example.backend.repository.Works.WorksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

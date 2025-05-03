@@ -1,4 +1,4 @@
-package com.example.backend.entity.Comments;
+package com.example.backend.entity.Works.Comments;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

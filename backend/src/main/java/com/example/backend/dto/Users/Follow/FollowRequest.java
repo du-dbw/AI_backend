@@ -1,4 +1,4 @@
-package com.example.backend.dto.Follow;
+package com.example.backend.dto.Users.Follow;
 
 public class FollowRequest {
     private Long followerId; // 关注人的 ID

@@ -1,4 +1,4 @@
-package com.example.backend.entity.Follow;
+package com.example.backend.entity.Users.Follow;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

@@ -1,4 +1,4 @@
-package com.example.backend.entity.Likes;
+package com.example.backend.entity.Works.Likes;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

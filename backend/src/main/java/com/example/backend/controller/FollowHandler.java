@@ -1,9 +1,9 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Follow.FollowRequest;
+import com.example.backend.dto.Users.Follow.FollowRequest;
 import com.example.backend.dto.Response;
-import com.example.backend.entity.Follow.Follow;
-import com.example.backend.repository.Follow.FollowRepository;
+import com.example.backend.entity.Users.Follow.Follow;
+import com.example.backend.repository.Users.Follow.FollowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,8 +1,8 @@
-package com.example.backend.Comments;
+package com.example.backend.Works.Comments;
 
-import com.example.backend.dto.Comments.CommentsRequest;
+import com.example.backend.dto.Works.Comments.CommentsRequest;
 import com.example.backend.dto.Response;
-import com.example.backend.entity.Comments.Comments;
+import com.example.backend.entity.Works.Comments.Comments;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;

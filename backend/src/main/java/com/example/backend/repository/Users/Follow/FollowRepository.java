@@ -1,6 +1,6 @@
-package com.example.backend.repository.Follow;
+package com.example.backend.repository.Users.Follow;
 
-import com.example.backend.entity.Follow.Follow;
+import com.example.backend.entity.Users.Follow.Follow;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

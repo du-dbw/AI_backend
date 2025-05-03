@@ -1,16 +1,13 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Comments.CommentsRequest;
+import com.example.backend.dto.Works.Comments.CommentsRequest;
 import com.example.backend.dto.Response;
-import com.example.backend.entity.Comments.Comments;
+import com.example.backend.entity.Works.Comments.Comments;
 import com.example.backend.entity.Works.Works;
-import com.example.backend.repository.Comments.CommentsRepository;
+import com.example.backend.repository.Works.Comments.CommentsRepository;
 import com.example.backend.repository.Works.WorksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import com.example.backend.entity.Works.Works;
-import com.example.backend.repository.Works.WorksRepository;
 
 import java.util.List;
 import java.time.LocalDateTime;

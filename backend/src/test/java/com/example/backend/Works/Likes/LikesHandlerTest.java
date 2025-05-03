@@ -1,9 +1,9 @@
-package com.example.backend.Likes;
+package com.example.backend.Works.Likes;
 
-import com.example.backend.dto.Likes.LikesRequest;
+import com.example.backend.dto.Works.Likes.LikesRequest;
 import com.example.backend.dto.Response;
 import org.springframework.core.ParameterizedTypeReference;
-import com.example.backend.entity.Likes.Likes;
+import com.example.backend.entity.Works.Likes.Likes;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 

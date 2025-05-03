@@ -1,4 +1,4 @@
-package com.example.backend.dto.Likes;
+package com.example.backend.dto.Works.Likes;
 
 import java.time.LocalDateTime;
 
