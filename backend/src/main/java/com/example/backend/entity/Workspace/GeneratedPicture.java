@@ -10,7 +10,7 @@ public class GeneratedPicture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String workspaceId;
+    private Long workspaceId;
     private String imageUrl;
     private String generationConfig;
 
@@ -23,11 +23,11 @@ public class GeneratedPicture {
         this.id = id;
     }
 
-    public String getWorkspaceId() {
+    public Long getWorkspaceId() {
         return workspaceId;
     }
 
-    public void setWorkspaceId(String workspaceId) {
+    public void setWorkspaceId(Long workspaceId) {
         this.workspaceId = workspaceId;
     }
 

@@ -2,11 +2,28 @@ package com.example.backend.dto.Workspace;
 
 public class WorkspaceRequest {
 
+    private Long id;
+    private Long userId;
     private String name;
     private String description;
-    private String userId; // 添加 userId 字段
 
     // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     public String getName() {
         return name;
     }
@@ -21,13 +38,5 @@ public class WorkspaceRequest {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 }

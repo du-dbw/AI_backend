@@ -23,25 +23,25 @@ public class WorkspaceHandler {
     }
 
     @PostMapping("/create")
-    public Response createWorkspace(@RequestBody WorkspaceRequest workspaceRequestDTO, @RequestHeader("userId") Long userId) {
+    public Response createWorkspace(@RequestBody WorkspaceRequest workspaceRequestDTO) {
         // 检查工作空间名称是否已存在
-        if (workspaceRepository.existsByNameAndUserId(workspaceRequestDTO.getName(), userId)) {
+        if (workspaceRepository.existsByNameAndUserId(workspaceRequestDTO.getName(), workspaceRequestDTO.getUserId())) {
             return new Response(400, "Workspace name already exists");
         }
 
         Workspace newWorkspace = new Workspace(); // 使用实体类 Workspace
         newWorkspace.setName(workspaceRequestDTO.getName());
         newWorkspace.setDescription(workspaceRequestDTO.getDescription());
-        newWorkspace.setUserId(userId);
+        newWorkspace.setUserId(workspaceRequestDTO.getUserId());
 
         workspaceRepository.save(newWorkspace); // 保存实体类对象
 
         return new Response(200, "Workspace created successfully");
     }
 
-    @PostMapping("/configure/{workid}")
-    public Response configureWorkspace(@PathVariable Long workid, @RequestBody WorkspaceRequest workspaceRequestDTO, @RequestHeader("userId") Long userId) {
-        Workspace existingWorkspace = workspaceRepository.findByUserIdAndId(userId, workid); // 使用实体类 Workspace
+    @PostMapping("/configure/{worksapceid}")
+    public Response configureWorkspace(@PathVariable Long worksapceid, @RequestBody WorkspaceRequest workspaceRequestDTO, @RequestHeader("userId") Long userId) {
+        Workspace existingWorkspace = workspaceRepository.findByUserIdAndId(userId, worksapceid); // 使用实体类 Workspace
         if (existingWorkspace == null) {
             return new Response(404, "Workspace not found");
         }
@@ -54,12 +54,27 @@ public class WorkspaceHandler {
         return new Response(200, "Workspace updated successfully");
     }
 
-    @GetMapping("/{workid}")
-    public Workspace getWorkspace(@PathVariable Long workid, @RequestHeader("userId") Long userId) {
-        Workspace workspace = workspaceRepository.findByUserIdAndId(userId, workid); // 使用实体类 Workspace
-        if (workspace == null) {
-            throw new RuntimeException("Workspace not found");
-        }
-        return workspace;
+    @GetMapping("/findByUserId")
+    public List<Workspace> getWorkspacesByUserId(@RequestHeader("userId") Long userId) {
+        //System.out.println("Received userId: " + userId);
+        return workspaceRepository.findAllByUserId(userId);
     }
+
+    // 删除工作空间
+    @DeleteMapping("/delete/{worksapceid}")
+    public Response deleteWorkspace(@PathVariable Long worksapceid, @RequestHeader("userId") Long userId) {
+        // 检查工作空间是否存在且属于该用户
+        Workspace workspace = workspaceRepository.findByUserIdAndId(userId, worksapceid);
+        if (workspace == null) {
+            return new Response(404, "Workspace not found or unauthorized");
+        }
+
+        workspaceRepository.deleteById(worksapceid); // 删除工作空间
+
+        return new Response(200, "Workspace deleted successfully");
+    }
+
+
+
 }
+
