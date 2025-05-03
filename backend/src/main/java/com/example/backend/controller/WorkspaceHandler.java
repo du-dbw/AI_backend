@@ -1,6 +1,9 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.Workspace.PublishRequest;
 import com.example.backend.dto.Workspace.WorkspaceRequest;
+import com.example.backend.entity.Works.Works;
+import com.example.backend.repository.Works.WorksRepository;
 import com.example.backend.repository.Workspace.WorkspaceRepository;
 import com.example.backend.dto.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.backend.entity.Workspace.Workspace;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -16,6 +20,9 @@ public class WorkspaceHandler {
 
     @Autowired
     private WorkspaceRepository workspaceRepository;
+
+    @Autowired
+    private WorksRepository worksRepository;
 
     @GetMapping("/findAll")
     public List<Workspace> findAllWorkspaces() {
@@ -74,7 +81,28 @@ public class WorkspaceHandler {
         return new Response(200, "Workspace deleted successfully");
     }
 
+    // 发布图片
+    @PostMapping("/publish")
+    public Response publishImage(@RequestBody PublishRequest publishRequest, @RequestHeader("userId") Long userId) {
+        Long workspaceId = publishRequest.getWorkspaceId();
+        String imageUrl = publishRequest.getImageUrl();
+        String title = publishRequest.getTitle(); // 从请求体中获取标题
+        String description = publishRequest.getDescription(); // 从请求体中获取描述
 
 
+        // 创建一个新的 Works 实体并保存
+        Works newWork = new Works();
+        newWork.setUserId(userId);
+        newWork.setTitle(title != null ? title : "Generated Image"); // 如果标题为 null，使用默认标题
+        newWork.setDescription(description != null ? description : "Generated image from AI"); // 如果描述为 null，使用默认描述
+        newWork.setImageUrl(imageUrl);
+        newWork.setCreatedTime(LocalDateTime.now());
+        newWork.setUpdatedTime(LocalDateTime.now());
+
+        worksRepository.save(newWork);
+
+        // 将新创建的 Works ID 返回给前端
+        return new Response(200, "Image published successfully with Work ID: " + newWork.getWorkId());
+    }
 }
 
