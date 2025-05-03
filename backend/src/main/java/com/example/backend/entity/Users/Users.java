@@ -28,16 +28,26 @@ public class Users {
     @Column(length = 128, nullable = false)
     private String phone;
 
+    // 新增用户头像属性
+    @Column(length = 256)
+    private String avatar;
+
+    // 新增个人简介属性
+    @Column(length = 512)
+    private String bio;
+
     // 默认构造方法
     public Users() {
     }
 
     // 全参构造方法
-    public Users(String name, String password, String email, String phone) {
+    public Users(String name, String password, String email, String phone, String avatar, String bio) {
         this.name = name;
         this.password = password;
         this.email = email;
         this.phone = phone;
+        this.avatar = avatar;
+        this.bio = bio;
     }
 
     // Getter 和 Setter 方法
@@ -80,6 +90,25 @@ public class Users {
     public void setPhone(String phone) {
         this.phone = phone;
     }
+
+    // 新增用户头像的 Getter 和 Setter 方法
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    // 新增个人简介的 Getter 和 Setter 方法
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -88,7 +117,8 @@ public class Users {
                 ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
+                ", avatar='" + avatar + '\'' +
+                ", bio='" + bio + '\'' +
                 "}\n";
-
     }
 }
