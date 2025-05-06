@@ -6,6 +6,8 @@ import com.example.backend.dto.Users.RegisterRequest;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
+
 public class UsersHandlerTest {
 
     private static final String BASE_URL = "http://localhost:8181/users";
@@ -24,9 +26,9 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/register";
 
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setName("testuser");
+        registerRequest.setName("testuser1");
         registerRequest.setPassword("password1234");
-        registerRequest.setEmail("test@example.com");
+        registerRequest.setEmail("1test@example.com");
         registerRequest.setPhone("1234567890");
 
 
@@ -42,14 +44,25 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/login";
 
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setName("testuser");
-        loginRequest.setPassword("password123");
+        loginRequest.setName("testuser1");
+        loginRequest.setPassword("password1234");
 
         HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest);
 
         ResponseEntity<Response> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Response.class);
 
+        // 获取响应头中的 Set-Cookie
+        List<String> cookies = response.getHeaders().get("Set-Cookie");
+
         System.out.println("Login Response Status Code: " + response.getStatusCode());
         System.out.println("Login Response Body: " + response.getBody());
+        System.out.println("Login Response Cookies:");
+        if (cookies != null) {
+            for (String cookie : cookies) {
+                System.out.println(cookie);
+            }
+        } else {
+            System.out.println("No cookies found in response.");
+        }
     }
 }

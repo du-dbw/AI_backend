@@ -6,10 +6,11 @@ import com.example.backend.dto.Users.RegisterRequest;
 import com.example.backend.dto.Response;
 import com.example.backend.entity.Users.Users;
 import com.example.backend.repository.Users.UsersRepository;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import jakarta.servlet.http.Cookie;
 import java.util.List;
 
 @RestController
@@ -25,13 +26,19 @@ public class UsersHandler {
     }
 
     @PostMapping("/login")
-    public Response login(@RequestBody LoginRequest loginRequest) {
+    public Response login(@RequestBody LoginRequest loginRequest , HttpServletResponse response) {
         String name = loginRequest.getName();
         String password = loginRequest.getPassword();
 
         Users user = usersRepository.findByName(name);
 
         if (user != null && user.getPassword().equals(password)) {
+            // 添加Cookie
+            Cookie cookie = new Cookie("userToken", String.valueOf(user.getId()));
+            cookie.setMaxAge(3600);  // 设置Cookie的过期时间为1小时
+            cookie.setPath("/");
+            response.addCookie(cookie);
+
             return new Response(200, "Login successful");
         } else {
             return new Response(401, "Invalid username or password");
@@ -50,6 +57,10 @@ public class UsersHandler {
             return new Response(400, "Username already exists");
         }
 
+        // 检查邮箱是否已存在
+        if (usersRepository.existsByEmail(email)) {
+            return new Response(400, "Email already exists");
+        }
         // 创建新用户
         Users newUser = new Users();
         newUser.setName(name);
