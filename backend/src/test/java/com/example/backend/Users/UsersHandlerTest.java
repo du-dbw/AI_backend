@@ -25,9 +25,10 @@ public class UsersHandlerTest {
 
         RegisterRequest registerRequest = new RegisterRequest();
         registerRequest.setName("testuser");
-        registerRequest.setPassword("password123");
+        registerRequest.setPassword("password1234");
         registerRequest.setEmail("test@example.com");
         registerRequest.setPhone("1234567890");
+
 
         HttpEntity<RegisterRequest> requestEntity = new HttpEntity<>(registerRequest);
 

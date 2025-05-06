@@ -23,6 +23,7 @@ public class RawPictureHandler {
     }
 
     // 创建原始图片
+    // 这里还不完全对，前端处理的应该是，整个图片，而不是url，
     @PostMapping("/create")
     public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
         RawPicture newRawPicture = new RawPicture();
@@ -33,6 +34,38 @@ public class RawPictureHandler {
 
         return new Response(200, "RawPicture created successfully");
     }
+
+//    @PostMapping("/create")
+//    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
+//        RawPicture newRawPicture = new RawPicture();
+//        newRawPicture.setWorkspaceId(rawPictureRequestDTO.getWorkspaceId());
+//        // 保存 Base64 图片到文件系统或云存储
+//        String imageUrl = saveImageToServer(rawPictureRequestDTO.getImageBase64());
+//        newRawPicture.setImageUrl(imageUrl);
+//        rawPictureRepository.save(newRawPicture);
+//        return new Response(200, "RawPicture created successfully");
+//    }
+//
+//    private String saveImageToServer(String base64Image) {
+//        // 去掉 Base64 前缀
+//        String base64ImageContent = base64Image.split(",")[1];
+//        // 定义保存路径
+//        String filePath = "uploads/" + System.currentTimeMillis() + ".png";
+//        // 保存文件
+//        try {
+//            byte[] imageBytes = Base64.getDecoder().decode(base64ImageContent);
+//            Files.write(Paths.get(filePath), imageBytes);
+//            return filePath; // 返回服务器上的文件路径作为 URL
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+//    }
+
+
+
+
+
 
     // 根据工作空间 ID 获取所有原始图片
     @GetMapping("/findByWorkspaceId/{workspaceId}")

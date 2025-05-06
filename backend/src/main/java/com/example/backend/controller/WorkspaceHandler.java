@@ -1,9 +1,12 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.Workspace.GeneratingPictureRequest;
 import com.example.backend.dto.Workspace.PublishRequest;
 import com.example.backend.dto.Workspace.WorkspaceRequest;
 import com.example.backend.entity.Works.Works;
+import com.example.backend.entity.Workspace.GeneratedPicture;
 import com.example.backend.repository.Works.WorksRepository;
+import com.example.backend.repository.Workspace.GeneratedPictureRepository;
 import com.example.backend.repository.Workspace.WorkspaceRepository;
 import com.example.backend.dto.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import com.example.backend.entity.Workspace.Workspace;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/workspace")
@@ -20,6 +24,9 @@ public class WorkspaceHandler {
 
     @Autowired
     private WorkspaceRepository workspaceRepository;
+
+    @Autowired
+    private GeneratedPictureRepository generatedPictureRepository;
 
     @Autowired
     private WorksRepository worksRepository;
@@ -104,5 +111,45 @@ public class WorkspaceHandler {
         // 将新创建的 Works ID 返回给前端
         return new Response(200, "Image published successfully with Work ID: " + newWork.getWorkId());
     }
+
+    @PostMapping("/generate-image/{workspaceId}")
+    public Response generateImage(
+            @PathVariable Long workspaceId,
+            @RequestHeader("userId") Long userId,
+            @RequestBody GeneratingPictureRequest generatingPictureRequest) {
+
+
+        // 获取用户选择的两张图片和输入的文字
+        String rawImageUrl = generatingPictureRequest.getRawImageUrl();
+        String templateImageUrl = generatingPictureRequest.getTemplateImageUrl();
+        String inputText = generatingPictureRequest.getInputText();
+
+        if (rawImageUrl == null || templateImageUrl == null || inputText == null || inputText.isEmpty()) {
+            return new Response(400, "Invalid request data");
+        }
+
+        // 调用算法组的接口生成图片
+        try {
+            String generatedImageUrl = "111";
+            //String generatedImageUrl = callAlgorithmApi(rawImageUrl, templateImageUrl, inputText);
+
+            // 创建一个新的 GeneratedPicture 实体并保存
+            GeneratedPicture newGeneratedPicture = new GeneratedPicture();
+            newGeneratedPicture.setWorkspaceId(workspaceId);
+            newGeneratedPicture.setImageUrl(generatedImageUrl);
+            newGeneratedPicture.setGenerationConfig(inputText); // 假设将输入文字作为生成配置
+
+            generatedPictureRepository.save(newGeneratedPicture);
+
+            // 返回生成的图片 URL 和 GeneratedPicture ID 给前端
+            return new Response(200, "Image generated successfully with GeneratedPicture ID: " + newGeneratedPicture.getId(),
+                    Map.of("imageUrl", generatedImageUrl, "generatedPictureId", newGeneratedPicture.getId()));
+        } catch (Exception e) {
+            return new Response(500, "Failed to generate image: " + e.getMessage());
+        }
+    }
+
+
+
 }
 

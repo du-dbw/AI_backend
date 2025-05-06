@@ -1,5 +1,6 @@
 package com.example.backend.Workspace;
 
+import com.example.backend.dto.Workspace.GeneratingPictureRequest;
 import com.example.backend.dto.Workspace.PublishRequest;
 import com.example.backend.dto.Workspace.WorkspaceRequest;
 import com.example.backend.dto.Response;
@@ -18,22 +19,24 @@ public class WorkspaceHandlerTest {
         RestTemplate restTemplate = new RestTemplate();
 
         // 测试创建多个工作空间
-        testCreateMultipleWorkspaces(restTemplate);
-
-        // 测试获取所有工作空间
-        testGetAllWorkspaces(restTemplate);
-
-        // 测试获取某个用户的所有工作空间
-        testGetWorkspacesByUserId(restTemplate, 1L);
-
-        // 测试删除工作空间
-        testDeleteWorkspace(restTemplate, 1L, 1L); // 假设删除用户 ID 为 1 的工作空间 ID 为 1
-
-        // 测试配置工作空间
-        testConfigureWorkspace(restTemplate, 1L, 3L); // 假设配置用户 ID 为 1 的工作空间 ID 为 1
-
-        // 测试发布图片到工作空间
-        testPublishImage(restTemplate, 100L, 100L); // 假设用户 ID 为 100，工作空间 ID 为 100
+//        testCreateMultipleWorkspaces(restTemplate);
+//
+//        // 测试获取所有工作空间
+//        testGetAllWorkspaces(restTemplate);
+//
+//        // 测试获取某个用户的所有工作空间
+//        testGetWorkspacesByUserId(restTemplate, 1L);
+//
+//        // 测试删除工作空间
+//        testDeleteWorkspace(restTemplate, 1L, 1L); // 假设删除用户 ID 为 1 的工作空间 ID 为 1
+//
+//        // 测试配置工作空间
+//        testConfigureWorkspace(restTemplate, 1L, 3L); // 假设配置用户 ID 为 1 的工作空间 ID 为 1
+//
+//        // 测试发布图片到工作空间
+//        testPublishImage(restTemplate, 100L, 100L); // 假设用户 ID 为 100，工作空间 ID 为 100
+//
+          testGenerateImage(restTemplate);
     }
 
     private static void testCreateMultipleWorkspaces(RestTemplate restTemplate) {
@@ -186,5 +189,32 @@ public class WorkspaceHandlerTest {
         System.out.println("Publish Image Response Body: " + response.getBody());
     }
 
+    private static void testGenerateImage(RestTemplate restTemplate) {
+        String url = BASE_URL + "/generate-image/1"; // 假设工作空间 ID 为 1
 
+        // 设置请求头以包含 userId
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("userId", "1"); // 假设 userId 是 1
+
+        // 创建 GeneratingPictureRequest 对象
+        GeneratingPictureRequest generatingPictureRequest = new GeneratingPictureRequest();
+        generatingPictureRequest.setRawImageUrl("https://example.com/path/to/raw/image.jpg");
+        generatingPictureRequest.setTemplateImageUrl("https://example.com/path/to/template/image.jpg");
+        generatingPictureRequest.setInputText("Generate a creative image");
+
+        generatingPictureRequest.setWorkspaceId(3L);
+        // 创建 HttpEntity 对象，包含请求头和请求体
+        HttpEntity<GeneratingPictureRequest> requestEntity = new HttpEntity<>(generatingPictureRequest, headers);
+
+        // 使用 ResponseEntity 来接收响应
+        ResponseEntity<Response> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                requestEntity,
+                Response.class
+        );
+
+        System.out.println("Generate Image Response Status Code: " + response.getStatusCode());
+        System.out.println("Generate Image Response Body: " + response.getBody());
+    }
 }

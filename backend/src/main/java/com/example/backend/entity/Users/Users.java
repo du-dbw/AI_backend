@@ -28,14 +28,13 @@ public class Users {
     @Column(length = 128, nullable = false)
     private String phone;
 
-    // 新增用户头像属性
+    // 新增用户头像属性并设置默认值
     @Column(length = 256)
-    private String avatar;
+    private String avatar = "default-avatar.jpg"; // 默认值
 
-    // 新增个人简介属性
+    // 新增个人简介属性并设置默认值
     @Column(length = 512)
-    private String bio;
-
+    private String bio = "No bio available"; // 默认值
     // 默认构造方法
     public Users() {
     }
