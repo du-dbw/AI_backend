@@ -5,8 +5,14 @@ import com.example.backend.entity.Workspace.RawPicture;
 import com.example.backend.repository.Workspace.RawPictureRepository;
 import com.example.backend.dto.Response;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -24,16 +30,64 @@ public class RawPictureHandler {
 
     // 创建原始图片
     // 这里还不完全对，前端处理的应该是，整个图片，而不是url，
-    @PostMapping("/create")
-    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
-        RawPicture newRawPicture = new RawPicture();
-        newRawPicture.setWorkspaceId(rawPictureRequestDTO.getWorkspaceId());
-        newRawPicture.setImageUrl(rawPictureRequestDTO.getImageUrl());
+//    @PostMapping("/create")
+//    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
+//        RawPicture newRawPicture = new RawPicture();
+//        newRawPicture.setWorkspaceId(rawPictureRequestDTO.getWorkspaceId());
+//        newRawPicture.setImageUrl(rawPictureRequestDTO.getImageUrl());
+//
+//        rawPictureRepository.save(newRawPicture);
+//
+//        return new Response(200, "RawPicture created successfully");
+//    }
 
+
+    @PostMapping("/create")
+    public ResponseEntity<Response> createRawPicture(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") Long workspaceId) {
+        // 检查文件是否为空
+        if (file == null || file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(400, "File is empty"));
+        }
+
+        // 检查文件类型是否为图片
+        String contentType = file.getContentType();
+        if (!(contentType.equals("image/jpeg") || contentType.equals("image/png") || contentType.equals("image/gif"))) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(400, "File type not supported"));
+        }
+
+        // 创建文件保存目录（如果不存在）
+        String uploadDir = "E:/111AIweb/backend/src/main/resources/static/rawpictures"; // 示例路径，根据实际情况修改
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs(); // 创建目录
+        }
+
+        // 生成唯一的文件名，避免文件名冲突
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String newFilename = workspaceId + "_" + new Date().getTime() + fileExtension;
+        String filePath = uploadDir + "/" + newFilename;
+
+        // 保存文件到本地
+        try {
+            file.transferTo(new File(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(500, "Failed to save file"));
+        }
+
+        // 构造文件的访问 URL
+        String imageUrl = "http://localhost:8181/rawpictures/" + newFilename; // 示例 URL，根据实际情况修改
+
+        // 存储图片信息到数据库
+        RawPicture newRawPicture = new RawPicture();
+        newRawPicture.setWorkspaceId(workspaceId);
+        newRawPicture.setImageUrl(imageUrl);
         rawPictureRepository.save(newRawPicture);
 
-        return new Response(200, "RawPicture created successfully");
+        return ResponseEntity.ok(new Response(200, "RawPicture created successfully"));
     }
+
 
 //    @PostMapping("/create")
 //    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {

@@ -62,13 +62,7 @@ public class Favorites {
         return createdTime;
     }
 
-    // 通常不设置 createdTime，因为它应该由数据库自动生成
-    // 如果需要手动设置，可以取消注释以下方法
-    /*
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-    */
+
 
     @Override
     public String toString() {

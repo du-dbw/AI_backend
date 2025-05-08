@@ -102,7 +102,7 @@ public class UsersHandler {
         }
 
         // 创建文件保存目录（如果不存在）
-        String uploadDir = "E:/111AIweb/backend/src/main/resources/static/test"; // 示例路径，根据实际情况修改
+        String uploadDir = "E:/111AIweb/backend/src/main/resources/static/jatest"; // 示例路径，根据实际情况修改
         File dir = new File(uploadDir);
         if (!dir.exists()) {
             dir.mkdirs(); // 创建目录
