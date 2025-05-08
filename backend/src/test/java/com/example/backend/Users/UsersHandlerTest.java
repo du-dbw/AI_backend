@@ -26,13 +26,13 @@ public class UsersHandlerTest {
 
     public static void main(String[] args) {
         // 测试注册功能
-        //testRegister(restTemplate);
+        testRegister(restTemplate);
 
         // 测试登录功能
-        testLogin(restTemplate);
+        //testLogin(restTemplate);
 
         // 测试上传头像功能
-        testUploadAvatar(restTemplate);
+        //testUploadAvatar(restTemplate);
 
         // 测试编辑个人简介功能
         //testEditBio(restTemplate);
@@ -42,10 +42,10 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/register";
 
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setName("testuser1");
+        registerRequest.setName("");
         registerRequest.setPassword("password1234");
-        registerRequest.setEmail("1test@example.com");
-        registerRequest.setPhone("1234567890");
+        registerRequest.setEmail("11test@example.com");
+        registerRequest.setPhone("19550191289");
 
         HttpEntity<RegisterRequest> requestEntity = new HttpEntity<>(registerRequest);
 
@@ -59,7 +59,7 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/login";
 
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setName("testuser1");
+        loginRequest.setName("testuser11");
         loginRequest.setPassword("password1234");
 
         HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest);
