@@ -10,9 +10,10 @@ public class GeneratedPicture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long workspaceId;
+    private Long workId;
     private String imageUrl;
     private String generationConfig;
+    private Long userId;
 
     // Getters and Setters
     public Long getId() {
@@ -23,12 +24,12 @@ public class GeneratedPicture {
         this.id = id;
     }
 
-    public Long getWorkspaceId() {
-        return workspaceId;
+    public Long getWorkId() {
+        return workId;
     }
 
-    public void setWorkspaceId(Long workspaceId) {
-        this.workspaceId = workspaceId;
+    public void setWorkId(Long workspaceId) {
+        this.workId = workspaceId;
     }
 
     public String getImageUrl() {
@@ -45,5 +46,13 @@ public class GeneratedPicture {
 
     public void setGenerationConfig(String generationConfig) {
         this.generationConfig = generationConfig;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

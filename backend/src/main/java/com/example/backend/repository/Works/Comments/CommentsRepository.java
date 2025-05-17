@@ -1,6 +1,8 @@
 package com.example.backend.repository.Works.Comments;
 
 import com.example.backend.entity.Works.Comments.Comments;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -32,4 +34,7 @@ public interface CommentsRepository extends JpaRepository<Comments, Long> {
     // 按时间筛选评论
     // 这里暂不支持，按热度吧，不过也可以实现
     List<Comments> findByCreatedTimeAfter(LocalDateTime date);
+
+    // 分页获取作品的所有评论
+    Page<Comments> findByWorkId(Long workId, Pageable pageable);
 }

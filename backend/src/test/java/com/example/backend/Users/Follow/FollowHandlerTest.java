@@ -31,19 +31,19 @@ public class FollowHandlerTest {
 
     private static void testFollow(RestTemplate restTemplate, int count) {
         String url = BASE_URL + "/follow";
-        Long followerId = 1L; // 关注者的 ID
+        String followerId = 1L; // 关注者的 ID
 
         for (int i = 1; i <= count; i++) {
             FollowRequest followRequest = new FollowRequest();
-            followRequest.setFollowerId(followerId);
-            followRequest.setFolloweeId((long) (2 + i)); // 被关注者的 ID，从3开始递增
+            followRequest.setFollowerName(followerId);
+            followRequest.setFolloweeName((long) (2 + i)); // 被关注者的 ID，从3开始递增
 
             HttpEntity<FollowRequest> requestEntity = new HttpEntity<>(followRequest);
 
             ResponseEntity<Response> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Response.class);
 
             System.out.printf("Follow Response for followeeId %d - Status Code: %s, Body: %s%n",
-                    followRequest.getFolloweeId(),
+                    followRequest.getFolloweeName(),
                     response.getStatusCode(),
                     response.getBody());
         }
@@ -57,8 +57,8 @@ public class FollowHandlerTest {
         FollowRequest followRequest = new FollowRequest();
 
 
-        followRequest.setFollowerId(1L); // 关注者的 ID
-        followRequest.setFolloweeId(2L); // 被关注者的 ID
+        followRequest.setFollowerName(1L); // 关注者的 ID
+        followRequest.setFolloweeName(2L); // 被关注者的 ID
 
         HttpEntity<FollowRequest> requestEntity = new HttpEntity<>(followRequest);
         ResponseEntity<Response> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, Response.class);

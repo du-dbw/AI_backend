@@ -1,19 +1,27 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Works.Likes.LikesRequest;
+
 import com.example.backend.dto.Response;
 import com.example.backend.entity.Works.Likes.Likes;
 import com.example.backend.entity.Works.Works;
+import com.example.backend.repository.Users.UsersRepository;
 import com.example.backend.repository.Works.Likes.LikesRepository;
 import com.example.backend.repository.Works.WorksRepository;
+import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.List;
+import com.example.backend.entity.Users.Users;
+
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
+import java.util.*;
+
+
 @RestController
-@RequestMapping("/likes")
+@RequestMapping("/works")
 public class LikesHandler {
 
     @Autowired
@@ -22,62 +30,128 @@ public class LikesHandler {
     @Autowired
     private WorksRepository worksRepository;
 
-    @PostMapping("/add")
-    public Response addLike(@RequestBody LikesRequest likesRequest) {
-        Long workId = likesRequest.getWorkId();
-        Long userId = likesRequest.getUserId();
+    @Autowired
+    private UsersRepository usersRepository;
 
-        // 检查是否已经点过赞
-        if (likesRepository.existsByWorkIdAndUserId(workId, userId)) {
-            return new Response(400, "Already liked");
+    // 点赞作品的 API
+    @PostMapping("/{workId}/like")
+    public Response likeWork(@PathVariable Long workId, HttpServletRequest request) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return new Response(401, "Unauthorized");
         }
-
-        // 创建新的点赞记录
-        Likes newLike = new Likes();
-        newLike.setWorkId(workId);
-        newLike.setUserId(userId);
-        newLike.setCreatedTime(LocalDateTime.now()); // 使用当前时间
-
-        likesRepository.save(newLike);
-
-        // 更新作品的点赞数
-        Works work = worksRepository.findById(workId).orElse(null);
-        if (work != null) {
-            work.addLike(); // 调用作品实体类中的方法增加点赞数
-            worksRepository.save(work); // 保存更新后的作品
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return new Response(401, "Unauthorized");
         }
+        //Users currentUser = usersRepository.findByName("11111");
+        try {
+            // 检查作品是否存在
+            Works work = worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
 
-        return new Response(200, "Like added successfully");
+            // 检查是否已经点过赞
+            if (likesRepository.existsByWorkIdAndUserId(workId, currentUser.getId())) {
+                return new Response(400, "Already liked");
+            }
+
+            // 创建点赞记录
+            Likes like = new Likes();
+            like.setWorkId(workId);
+            like.setUserId(currentUser.getId());
+            like.setCreatedTime(LocalDateTime.now());
+            likesRepository.save(like);
+
+            // 更新作品点赞数量
+            work.addLike();
+            worksRepository.save(work);
+
+            return new Response(0, "Like successful");
+        } catch (Exception e) {
+            return new Response(500, "Like failed");
+        }
     }
 
-    @PostMapping("/delete")
-    public Response deleteLike(@RequestBody LikesRequest likesRequest) {
-        Long workId = likesRequest.getWorkId();
-        Long userId = likesRequest.getUserId();
-
-        // 检查点赞记录是否存在
-        if (!likesRepository.existsByWorkIdAndUserId(workId, userId)) {
-            return new Response(400, "Like does not exist");
+    // 取消点赞作品的 API
+    @DeleteMapping("/{workId}/like")
+    @Transactional
+    public Response unlikeWork(@PathVariable Long workId, HttpServletRequest request) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return new Response(401, "Unauthorized");
         }
-
-        // 删除点赞记录
-        likesRepository.deleteByWorkIdAndUserId(workId, userId);
-
-        Works work = worksRepository.findById(workId).orElse(null);
-        if (work != null) {
-            work.removeLike(); // 调用作品实体类中的方法减少点赞数
-            worksRepository.save(work); // 保存更新后的作品
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return new Response(401, "Unauthorized");
         }
-        return new Response(200, "Like deleted successfully");
+        //Users currentUser = usersRepository.findByName("11111");
+        try {
+            // 检查作品是否存在
+            Works work = worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
+
+            // 检查是否点过赞
+            if (!likesRepository.existsByWorkIdAndUserId(workId, currentUser.getId())) {
+                return new Response(400, "Not liked");
+            }
+
+            // 删除点赞记录
+            likesRepository.deleteByWorkIdAndUserId(workId, currentUser.getId());
+
+            // 更新作品点赞数量
+            work.removeLike();
+            worksRepository.save(work);
+
+            return new Response(0, "Unlike successful");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Response(500, "Unlike failed");
+        }
     }
 
-    @GetMapping("/bywork/{workId}")
-    public List<Likes> getLikesByWork(@PathVariable Long workId) {
-        return likesRepository.findByWorkId(workId);
+    // 获取作品点赞状态的 API
+    @GetMapping("/{workId}/like")
+    public Response getLikeStatus(@PathVariable Long workId, HttpServletRequest request) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return new Response(401, "Unauthorized");
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return new Response(401, "Unauthorized");
+        }
+        //Users currentUser = usersRepository.findByName("11111");
+        try {
+            // 检查作品是否存在
+            Works work = worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
+
+            // 获取点赞状态
+            boolean youLiked = likesRepository.existsByWorkIdAndUserId(workId, currentUser.getId());
+            long likeCount = work.getLikes();
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("you_liked", youLiked);
+            data.put("like_count", likeCount);
+
+            return new Response(0, "Get like status successful", data);
+        } catch (Exception e) {
+            return new Response(500, "Get like status failed");
+        }
     }
 
-    @GetMapping("/byuser/{userId}")
-    public List<Likes> getLikesByUser(@PathVariable Long userId) {
-        return likesRepository.findByUserId(userId);
+    // 提取 Token 的方法
+    private String extractToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("userToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
+
+
 }

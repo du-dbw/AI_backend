@@ -6,9 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface GeneratedPictureRepository extends JpaRepository<GeneratedPicture, Long> {
-    List<GeneratedPicture> findByWorkspaceId(Long workspaceId);
-    GeneratedPicture findByIdAndWorkspaceId(Long id, Long workspaceId);
-    void deleteByIdAndWorkspaceId(Long id, Long workspaceId);
+    List<GeneratedPicture> findByWorkId(Long workId);
+    GeneratedPicture findByIdAndWorkId(Long id, Long workId);
+    void deleteByIdAndWorkId(Long id, Long workId);
 
-    GeneratedPicture findByWorkspaceIdAndId(Long workspaceId, Long pictureId);
+    GeneratedPicture findByWorkIdAndId(Long workId, Long pictureId);
 }

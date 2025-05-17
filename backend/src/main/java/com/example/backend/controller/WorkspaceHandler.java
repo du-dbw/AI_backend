@@ -135,7 +135,7 @@ public class WorkspaceHandler {
 
             // 创建一个新的 GeneratedPicture 实体并保存
             GeneratedPicture newGeneratedPicture = new GeneratedPicture();
-            newGeneratedPicture.setWorkspaceId(workspaceId);
+            newGeneratedPicture.setWorkId(workspaceId);
             newGeneratedPicture.setImageUrl(generatedImageUrl);
             newGeneratedPicture.setGenerationConfig(inputText); // 假设将输入文字作为生成配置
 

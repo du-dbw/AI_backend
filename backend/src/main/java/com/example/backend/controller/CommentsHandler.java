@@ -1,19 +1,27 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Works.Comments.CommentsRequest;
 import com.example.backend.dto.Response;
 import com.example.backend.entity.Works.Comments.Comments;
+import com.example.backend.entity.Users.Users;
 import com.example.backend.entity.Works.Works;
+import com.example.backend.repository.Users.UsersRepository;
 import com.example.backend.repository.Works.Comments.CommentsRepository;
 import com.example.backend.repository.Works.WorksRepository;
+import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @RestController
-@RequestMapping("/comments")
+@RequestMapping("/works")
 public class CommentsHandler {
 
     @Autowired
@@ -22,59 +30,91 @@ public class CommentsHandler {
     @Autowired
     private WorksRepository worksRepository;
 
-    @PostMapping("/add")
-    public Response addComment(@RequestBody CommentsRequest commentsRequest) {
-        Long workID = commentsRequest.getWorkID();
-        Long userID = commentsRequest.getUserID();
-        String content = commentsRequest.getContent();
+    @Autowired
+    private UsersRepository usersRepository;
 
-
-        // 创建新的评论
-        Comments newComment = new Comments();
-        newComment.setWorkId(workID);
-        newComment.setUserId(userID);
-        newComment.setContent(content);
-        newComment.setCreatedTime(LocalDateTime.now()); // 使用当前时间
-
-        commentsRepository.save(newComment);
-
-        Works work = worksRepository.findById(workID).orElse(null);
-        if (work != null) {
-            work.addComment(); // 调用作品实体类中的方法增加评论数
-            worksRepository.save(work); // 保存更新后的作品
+    // 评论作品的 API
+    @PostMapping("/{workId}/comments")
+    public Response commentWork(@PathVariable Long workId, @RequestBody Map<String, String> requestBody, HttpServletRequest request) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return new Response(401, "Unauthorized");
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return new Response(401, "Unauthorized");
         }
 
-        return new Response(200, "Comment added successfully");
-    }
+        try {
+            // 检查作品是否存在
+            Works work = worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
 
-    @PostMapping("/delete")
-    public Response deleteComment(@RequestBody CommentsRequest commentsRequest) {
-        Long workID = commentsRequest.getWorkID();
-        Long userID = commentsRequest.getUserID();
+            // 获取评论内容
+            String content = requestBody.get("content");
+            if (content == null || content.isEmpty()) {
+                return new Response(400, "Comment content is required");
+            }
 
-        // 检查评论是否存在
-        if (!commentsRepository.existsByWorkIdAndUserId(workID, userID)) {
-            return new Response(400, "Comment does not exist");
+            // 创建评论记录
+            Comments comment = new Comments();
+            comment.setWorkId(workId);
+            comment.setUserId(currentUser.getId());
+            comment.setContent(content);
+            comment.setCreatedTime(LocalDateTime.now());
+            commentsRepository.save(comment);
+
+            // 更新作品评论数量
+            work.addComment();
+            worksRepository.save(work);
+
+            return new Response(0, "Comment successful");
+        } catch (Exception e) {
+            return new Response(500, "Comment failed");
         }
+    }
 
-        // 删除评论
-        commentsRepository.deleteByWorkIdAndUserId(workID, userID);
+    // 获取评论列表的 API
+    @GetMapping("/{workId}/comments")
+    public Response getComments(@PathVariable Long workId,
+                                @RequestParam(defaultValue = "1") int page,
+                                @RequestParam(defaultValue = "10") int page_size,
+                                HttpServletRequest request) {
+        try {
+            // 检查作品是否存在
+            worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
 
-        Works work = worksRepository.findById(workID).orElse(null);
-        if (work != null) {
-            work.removeComment(); // 调用作品实体类中的方法减少评论数
-            worksRepository.save(work); // 保存更新后的作品
+            // 构造分页请求，按时间倒序排列
+            Pageable pageable = PageRequest.of(page - 1, page_size, Sort.by(Sort.Direction.DESC, "createdTime"));
+            // 分页获取评论列表
+            Page<Comments> commentPage = commentsRepository.findByWorkId(workId, pageable);
+
+            // 将评论转换为数据列表
+            List<Map<String, Object>> comments = commentPage.getContent().stream().map(comment -> {
+                Map<String, Object> commentData = new HashMap<>();
+                commentData.put("comment_id", comment.getCommentId());
+                commentData.put("content", comment.getContent());
+                commentData.put("username", usersRepository.findById(comment.getUserId()).map(Users::getName).orElse("Unknown"));
+                commentData.put("time", comment.getCreatedTime().toEpochSecond(java.time.ZoneOffset.UTC));
+                return commentData;
+            }).collect(Collectors.toList());
+
+            return new Response(0, "Get comments successful", comments);
+        } catch (Exception e) {
+            return new Response(500, "Get comments failed");
         }
-        return new Response(200, "Comment deleted successfully");
     }
 
-    @GetMapping("/bywork/{workId}")
-    public List<Comments> getCommentsByWork(@PathVariable Long workId) {
-        return commentsRepository.findByWorkId(workId);
-    }
-
-    @GetMapping("/byuser/{userId}")
-    public List<Comments> getCommentsByUser(@PathVariable Long userId) {
-        return commentsRepository.findByUserId(userId);
+    // 提取 Token 的方法
+    private String extractToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("userToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
     }
 }

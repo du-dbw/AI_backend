@@ -16,10 +16,10 @@ public class Follow {
     private long id;
 
     @Column(nullable = false)
-    private long followerId; // 关注者 ID
+    private Long followerId; // 关注者 ID
 
     @Column(nullable = false)
-    private long followeeId; // 被关注者 ID
+    private Long followeeId; // 被关注者 ID
 
     @Column(nullable = false)
     private String createdAt; // 关注时间
@@ -29,7 +29,7 @@ public class Follow {
     }
 
     // 全参构造方法
-    public Follow(long followerId, long followeeId, String createdAt) {
+    public Follow(Long followerId, Long followeeId, String createdAt) {
         this.followerId = followerId;
         this.followeeId = followeeId;
         this.createdAt = createdAt;
@@ -44,19 +44,19 @@ public class Follow {
         this.id = id;
     }
 
-    public long getFollowerId() {
+    public Long getFollowerId() {
         return followerId;
     }
 
-    public void setFollowerId(long followerId) {
+    public void setFollowerId(Long followerId) {
         this.followerId = followerId;
     }
 
-    public long getFolloweeId() {
+    public Long getFolloweeId() {
         return followeeId;
     }
 
-    public void setFolloweeId(long followeeId) {
+    public void setFolloweeId(Long followeeId) {
         this.followeeId = followeeId;
     }
 

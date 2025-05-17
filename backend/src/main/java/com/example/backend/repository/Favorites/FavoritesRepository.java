@@ -1,6 +1,7 @@
 package com.example.backend.repository.Favorites;
 
 import com.example.backend.entity.Favorites.Favorites;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +24,9 @@ public interface FavoritesRepository extends JpaRepository<Favorites, Long> {
     // 根据用户 ID 删除所有的收藏记录
     void deleteAllByUserID(Long userID);
 
+    // 根据用户 ID 统计作品数量
+    Long countByUserID(Long userId);
+
     // 根据作品 ID 删除所有的收藏记录
     void deleteAllByWorkID(Long workID);
 
@@ -35,4 +39,10 @@ public interface FavoritesRepository extends JpaRepository<Favorites, Long> {
     @Modifying
     @Query("DELETE FROM Favorites WHERE workID = ?1 AND userID = ?2")
     void removeFavorite(Long workID, Long userID);
+
+
+    void deleteByWorkIDAndUserID(Long workId, Long id);
+
+    List<Favorites> findAllByUserID(Long id, Pageable pageable);
+
 }

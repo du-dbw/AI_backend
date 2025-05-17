@@ -8,8 +8,9 @@ public class RawPicture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long workspaceId;
+    private Long workId;
     private String imageUrl;
+    private Long userId;
 
     // Getters and Setters
     public Long getId() {
@@ -20,12 +21,12 @@ public class RawPicture {
         this.id = id;
     }
 
-    public Long getWorkspaceId() {
-        return workspaceId;
+    public Long getWorkId() {
+        return workId;
     }
 
-    public void setWorkspaceId(Long workspaceId) {
-        this.workspaceId = workspaceId;
+    public void setWorkId(Long workspaceId) {
+        this.workId = workspaceId;
     }
 
     public String getImageUrl() {
@@ -36,4 +37,11 @@ public class RawPicture {
         this.imageUrl = imageUrl;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 }

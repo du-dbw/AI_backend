@@ -2,16 +2,16 @@ package com.example.backend.dto.Workspace;
 
 public class RawPictureRequest {
     private Long id;
-    private Long workspaceId;
+    private Long workId;
     private String imageUrl;
 
     // 默认构造函数
     public RawPictureRequest() {}
 
     // 全参构造函数
-    public RawPictureRequest(Long id, Long workspaceId, String imageUrl) {
+    public RawPictureRequest(Long id, Long workId, String imageUrl) {
         this.id = id;
-        this.workspaceId = workspaceId;
+        this.workId = workId;
         this.imageUrl = imageUrl;
     }
 
@@ -24,12 +24,12 @@ public class RawPictureRequest {
         this.id = id;
     }
 
-    public Long getWorkspaceId() {
-        return workspaceId;
+    public Long getWorkId() {
+        return workId;
     }
 
-    public void setWorkspaceId(Long workspaceId) {
-        this.workspaceId = workspaceId;
+    public void setWorkId(Long workId) {
+        this.workId = workId;
     }
 
     public String getImageUrl() {

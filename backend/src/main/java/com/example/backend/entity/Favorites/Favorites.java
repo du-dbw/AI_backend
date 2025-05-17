@@ -61,6 +61,9 @@ public class Favorites {
     public LocalDateTime getCreatedTime() {
         return createdTime;
     }
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
+    }
 
 
 

@@ -1,26 +1,46 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Workspace.RawPictureRequest;
+import com.example.backend.entity.Users.Users;
+import com.example.backend.entity.Works.Tags.Tags;
+import com.example.backend.entity.Works.Works;
 import com.example.backend.entity.Workspace.RawPicture;
+import com.example.backend.repository.Users.UsersRepository;
+import com.example.backend.repository.Works.WorksRepository;
 import com.example.backend.repository.Workspace.RawPictureRepository;
 import com.example.backend.dto.Response;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+import com.example.backend.repository.Works.Tags.TagsRepository;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/workspace/RawPicture")
+@RequestMapping("/works")
 public class RawPictureHandler {
 
     @Autowired
     private RawPictureRepository rawPictureRepository;
+    @Autowired
+    private UsersRepository usersRepository;
+    @Autowired
+    private WorksRepository worksRepository;
+    @Autowired
+    private TagsRepository tagsRepository;
+
+    private final String uploadDir = "E:/111AIweb/backend/src/main/resources/static/rawpictures";
+
+
 
     // 获取所有原始图片
     @GetMapping("/findAll")
@@ -28,22 +48,35 @@ public class RawPictureHandler {
         return rawPictureRepository.findAll();
     }
 
-    // 创建原始图片
-    // 这里还不完全对，前端处理的应该是，整个图片，而不是url，
-//    @PostMapping("/create")
-//    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
-//        RawPicture newRawPicture = new RawPicture();
-//        newRawPicture.setWorkspaceId(rawPictureRequestDTO.getWorkspaceId());
-//        newRawPicture.setImageUrl(rawPictureRequestDTO.getImageUrl());
-//
-//        rawPictureRepository.save(newRawPicture);
-//
-//        return new Response(200, "RawPicture created successfully");
-//    }
 
 
-    @PostMapping("/create")
-    public ResponseEntity<Response> createRawPicture(@RequestParam("file") MultipartFile file, @RequestParam("workspaceId") Long workspaceId) {
+
+    @PostMapping("/{workid}/raw_picture")
+    public ResponseEntity<Response> uploadRawPicture(
+            @PathVariable Long workid,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request
+    ) {
+
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+
+        // 获取 workid 对应的 Work 实体
+        Works work = worksRepository.findById(workid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Work not found"));
+
+        // 检查 workid 所属用户是否与当前用户一致
+        if (!work.getUserId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(403, "You do not have permission to upload to this work"));
+        }
+
         // 检查文件是否为空
         if (file == null || file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(400, "File is empty"));
@@ -56,16 +89,16 @@ public class RawPictureHandler {
         }
 
         // 创建文件保存目录（如果不存在）
-        String uploadDir = "E:/111AIweb/backend/src/main/resources/static/rawpictures"; // 示例路径，根据实际情况修改
+        String uploadDir = "E:/111AIweb/backend/src/main/resources/static/rawpictures";
         File dir = new File(uploadDir);
         if (!dir.exists()) {
-            dir.mkdirs(); // 创建目录
+            dir.mkdirs();
         }
 
         // 生成唯一的文件名，避免文件名冲突
         String originalFilename = file.getOriginalFilename();
         String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        String newFilename = workspaceId + "_" + new Date().getTime() + fileExtension;
+        String newFilename = workid + "_" + new Date().getTime() + fileExtension;
         String filePath = uploadDir + "/" + newFilename;
 
         // 保存文件到本地
@@ -77,100 +110,217 @@ public class RawPictureHandler {
         }
 
         // 构造文件的访问 URL
-        String imageUrl = "http://localhost:8181/rawpictures/" + newFilename; // 示例 URL，根据实际情况修改
+        String imageUrl = "http://localhost:8181/rawpictures/" + newFilename;
 
         // 存储图片信息到数据库
         RawPicture newRawPicture = new RawPicture();
-        newRawPicture.setWorkspaceId(workspaceId);
+        newRawPicture.setWorkId(workid);
+        newRawPicture.setUserId(currentUser.getId());
         newRawPicture.setImageUrl(imageUrl);
         rawPictureRepository.save(newRawPicture);
 
-        return ResponseEntity.ok(new Response(200, "RawPicture created successfully"));
+        return ResponseEntity.ok(new Response(0, "RawPicture created successfully", newRawPicture.getId()));
     }
 
-
-//    @PostMapping("/create")
-//    public Response createRawPicture(@RequestBody RawPictureRequest rawPictureRequestDTO) {
-//        RawPicture newRawPicture = new RawPicture();
-//        newRawPicture.setWorkspaceId(rawPictureRequestDTO.getWorkspaceId());
-//        // 保存 Base64 图片到文件系统或云存储
-//        String imageUrl = saveImageToServer(rawPictureRequestDTO.getImageBase64());
-//        newRawPicture.setImageUrl(imageUrl);
-//        rawPictureRepository.save(newRawPicture);
-//        return new Response(200, "RawPicture created successfully");
-//    }
-//
-//    private String saveImageToServer(String base64Image) {
-//        // 去掉 Base64 前缀
-//        String base64ImageContent = base64Image.split(",")[1];
-//        // 定义保存路径
-//        String filePath = "uploads/" + System.currentTimeMillis() + ".png";
-//        // 保存文件
-//        try {
-//            byte[] imageBytes = Base64.getDecoder().decode(base64ImageContent);
-//            Files.write(Paths.get(filePath), imageBytes);
-//            return filePath; // 返回服务器上的文件路径作为 URL
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//    }
-
-
-
-
-
-
-    // 根据工作空间 ID 获取所有原始图片
-    @GetMapping("/findByWorkspaceId/{workspaceId}")
-    public List<RawPicture> getRawPicturesByWorkspaceId(@PathVariable Long workspaceId) {
-        return rawPictureRepository.findByWorkspaceId(workspaceId);
-    }
-
-    // 根据 ID 更新原始图片配置
-    @PostMapping("/configure/{pictureId}")
-    public Response configureRawPicture(@PathVariable Long pictureId, @RequestBody RawPictureRequest rawPictureRequestDTO) {
-        RawPicture existingRawPicture = rawPictureRepository.findByIdAndWorkspaceId(
-                pictureId, rawPictureRequestDTO.getWorkspaceId());
-        if (existingRawPicture == null) {
-            return new Response(404, "RawPicture not found");
+    @GetMapping("/{workid}/raw_picture/{picture_id}")
+    public ResponseEntity<Response> getRawPicture(
+            @PathVariable Long workid,
+            @PathVariable Long picture_id,
+            HttpServletRequest request
+    ) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
 
-        existingRawPicture.setImageUrl(rawPictureRequestDTO.getImageUrl());
+        //Users currentUser = usersRepository.findByName("11111");
+        // 获取 workid 对应的 Work 实体
+        Works work = worksRepository.findById(workid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Work not found"));
 
-        rawPictureRepository.save(existingRawPicture);
-
-        return new Response(200, "RawPicture updated successfully");
-    }
-
-    // 删除原始图片
-    @DeleteMapping("/delete/{pictureId}")
-    public Response deleteRawPicture(@PathVariable Long pictureId, @RequestHeader("workspaceId") Long workspaceId) {
-        RawPicture rawPicture = rawPictureRepository.findByWorkspaceIdAndId(workspaceId, pictureId);
-        if (rawPicture == null) {
-            return new Response(404, "RawPicture not found or unauthorized");
+        // 检查 workid 所属用户是否与当前用户一致
+        if (!work.getUserId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(403, "You do not have permission to access this work"));
         }
 
-        rawPictureRepository.deleteById(pictureId);
+        // 获取指定的 RawPicture 实体
+        RawPicture rawPicture = rawPictureRepository.findById(picture_id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "RawPicture not found"));
 
-        return new Response(200, "RawPicture deleted successfully");
+        // 构造响应数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("file_url", rawPicture.getImageUrl());
+
+        return ResponseEntity.ok(new Response(0, "RawPicture retrieved successfully", data));
     }
 
-    // 删除原始图片
-//    @DeleteMapping("/delete/{pictureId}")
-//    public Response deleteRawPicture(@PathVariable Long pictureId, @RequestBody RawPictureRequest rawPictureRequestDTO) {
-//        System.out.println("Deleting picture with ID: " + pictureId + ", Workspace ID: " + rawPictureRequestDTO.getWorkspaceId());
-//
-//        RawPicture rawPicture = rawPictureRepository.findByIdAndWorkspaceId(
-//                pictureId, rawPictureRequestDTO.getWorkspaceId());
-//        if (rawPicture == null) {
-//            return new Response(404, "RawPicture not found or unauthorized");
-//        }
-//
-//        rawPictureRepository.deleteByIdAndWorkspaceId(pictureId, rawPictureRequestDTO.getWorkspaceId());
-//
-//        return new Response(200, "RawPicture deleted successfully");
-//    }
+    @DeleteMapping("/{workid}/raw_picture/{picture_id}")
+    @Transactional
+    public ResponseEntity<Response> deleteRawPicture(
+            @PathVariable Long workid,
+            @PathVariable Long picture_id,
+            HttpServletRequest request
+    ) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        //Users currentUser = usersRepository.findByName("11111");
+        // 获取 workid 对应的 Work 实体
+        Works work = worksRepository.findById(workid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Work not found"));
+
+        // 检查 workid 所属用户是否与当前用户一致
+        if (!work.getUserId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(403, "You do not have permission to delete from this work"));
+        }
+
+        // 获取指定的 RawPicture 实体
+        RawPicture rawPicture = rawPictureRepository.findById(picture_id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "RawPicture not found"));
+
+        // 删除文件（如果存在）
+        String filePath = rawPicture.getImageUrl().replace("E:/111AIweb/backend/src/main/resources/static/rawpictures", uploadDir + "/");
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (!file.delete()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new Response(500, "Failed to delete file"));
+            }
+        }
+
+        // 删除数据库记录
+        rawPictureRepository.delete(rawPicture);
+
+        return ResponseEntity.ok(new Response(0, "RawPicture deleted successfully", null));
+    }
+
+    // 配置创作空间 - POST
+    @PostMapping("/{workid}/configure")
+    public ResponseEntity<Response> configureWork(
+            @PathVariable Long workid,
+            @RequestBody Map<String, Object> requestBody,
+            HttpServletRequest request
+    ) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+
+        // 获取 workid 对应的 Work 实体
+        Works work = worksRepository.findById(workid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Work not found"));
+
+        // 检查 workid 所属用户是否与当前用户一致
+        if (!work.getUserId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(403, "You do not have permission to configure this work"));
+        }
+
+        // 解析请求体中的数据
+        String name = (String) requestBody.get("name");
+        String description = (String) requestBody.get("description");
+        List<String> tags = (List<String>) requestBody.get("tags");
+
+        // 验证请求参数是否为空
+        if (name == null || name.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(400, "Name is required"));
+        }
+
+        // 更新 Work 实体信息
+        work.setTitle(name);
+        work.setDescription(description);
+        worksRepository.save(work);
+
+        // 处理标签数据
+        if (tags != null && !tags.isEmpty()) {
+            // 对标签名称进行去重处理
+            Set<String> uniqueTags = new HashSet<>(tags);
+            tags = new ArrayList<>(uniqueTags);
+
+            // 先删除旧标签
+            tagsRepository.deleteByWorkId(workid);
+
+            // 添加新标签
+            for (String tagName : tags) {
+                if (tagName != null && !tagName.isEmpty()) {
+                    Tags tag = new Tags();
+                    tag.setName(tagName.trim()); // 去除多余的空格
+                    tag.setWorkId(workid);
+                    tagsRepository.save(tag);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(new Response(0, "Work configured successfully"));
+    }
+
+    // 获取创作空间配置 - GET
+    @GetMapping("/{workid}/configure")
+    public ResponseEntity<Response> getWorkConfiguration(
+            @PathVariable Long workid,
+            HttpServletRequest request
+    ) {
+        // 从请求中提取Token并验证用户身份
+        String token = extractToken(request);
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
+        }
+
+        // 获取 workid 对应的 Work 实体
+        Works work = worksRepository.findById(workid)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Work not found"));
+
+        // 检查 workid 所属用户是否与当前用户一致
+        if (!work.getUserId().equals(currentUser.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Response(403, "You do not have permission to access this work"));
+        }
+
+        // 获取对应作品的所有标签
+        List<Tags> tagList = tagsRepository.findByWorkId(workid);
+        List<String> tags = tagList.stream().map(Tags::getName).collect(Collectors.toList());
+
+        // 构造响应数据
+        Map<String, Object> data = new HashMap<>();
+        data.put("name", work.getTitle());
+        data.put("description", work.getDescription());
+        data.put("tags", tags);
+
+        return ResponseEntity.ok(new Response(0, "Work configuration retrieved successfully", data));
+    }
+
+
+
+
+
+    private String extractToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("userToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
 
 
 }

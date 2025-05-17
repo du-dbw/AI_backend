@@ -42,9 +42,9 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/register";
 
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setName("");
-        registerRequest.setPassword("password1234");
-        registerRequest.setEmail("11test@example.com");
+        registerRequest.setUsername("11111");
+        registerRequest.setPassword("1111111");
+        registerRequest.setEmail("111test@example.com");
         registerRequest.setPhone("19550191289");
 
         HttpEntity<RegisterRequest> requestEntity = new HttpEntity<>(registerRequest);
@@ -59,7 +59,7 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/login";
 
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setName("testuser11");
+        loginRequest.setUsername("testuser11");
         loginRequest.setPassword("password1234");
 
         HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest);

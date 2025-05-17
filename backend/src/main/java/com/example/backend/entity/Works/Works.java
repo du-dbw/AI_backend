@@ -38,6 +38,14 @@ public class Works {
     @Column
     private LocalDateTime updatedTime;
 
+    // 被收藏数量字段
+    @Column(nullable = false)
+    private long collectionCount = 0;
+
+    // 发布状态字段，默认为 false
+    @Column(nullable = false)
+    private boolean published = false; // 初始化为 false
+
     // 默认构造方法
     public Works() {
     }
@@ -52,6 +60,7 @@ public class Works {
         this.updatedTime = LocalDateTime.now();
         this.likes = 0; // 初始化点赞数
         this.comments = 0; // 初始化评论数
+        this.collectionCount = 0;
     }
 
     // 为点赞数增加1
@@ -82,6 +91,28 @@ public class Works {
         return this.comments;
     }
 
+    // 为收藏数增加1
+    public long addCollection() {
+        this.collectionCount += 1;
+        return this.collectionCount;
+    }
+
+    // 为收藏数减少1
+    public long removeCollection() {
+        if (this.collectionCount > 0) {
+            this.collectionCount -= 1;
+        }
+        return this.collectionCount;
+    }
+
+    // Getter 和 Setter 方法
+    public long getCollectionCount() {
+        return collectionCount;
+    }
+
+    public void setCollectionCount(long collectionCount) {
+        this.collectionCount = collectionCount;
+    }
 
     public Long getWorkId() {
         return workId;
@@ -155,6 +186,14 @@ public class Works {
         this.updatedTime = updatedTime;
     }
 
+    // Getter 和 Setter 方法 - published
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
     @Override
     public String toString() {
         return "Works{" +
@@ -165,6 +204,7 @@ public class Works {
                 ", imageUrl='" + imageUrl + '\'' +
                 ", likes=" + likes +
                 ", comments=" + comments +
+                ", collectionCount=" + collectionCount + // 添加 collectionCount 到 toString 方法
                 ", createdTime=" + createdTime +
                 ", updatedTime=" + updatedTime +
                 "}\n";

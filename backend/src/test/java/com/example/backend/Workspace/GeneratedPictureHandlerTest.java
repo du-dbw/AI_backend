@@ -70,7 +70,7 @@ public class GeneratedPictureHandlerTest {
         // 打印每个生成图片的详细信息
         for (GeneratedPicture generatedPicture : response.getBody()) {
             System.out.println("GeneratedPicture ID: " + generatedPicture.getId());
-            System.out.println("GeneratedPicture Workspace ID: " + generatedPicture.getWorkspaceId());
+            System.out.println("GeneratedPicture Workspace ID: " + generatedPicture.getWorkId());
             System.out.println("GeneratedPicture URL: " + generatedPicture.getImageUrl());
             System.out.println("GeneratedPicture GenerationConfig: " + generatedPicture.getGenerationConfig());
             System.out.println("--------------------------");
@@ -96,7 +96,7 @@ public class GeneratedPictureHandlerTest {
         // 打印每个生成图片的详细信息
         for (GeneratedPicture generatedPicture : response.getBody()) {
             System.out.println("GeneratedPicture ID: " + generatedPicture.getId());
-            System.out.println("GeneratedPicture Workspace ID: " + generatedPicture.getWorkspaceId());
+            System.out.println("GeneratedPicture Workspace ID: " + generatedPicture.getWorkId());
             System.out.println("GeneratedPicture URL: " + generatedPicture.getImageUrl());
             System.out.println("GeneratedPicture GenerationConfig: " + generatedPicture.getGenerationConfig());
             System.out.println("--------------------------");

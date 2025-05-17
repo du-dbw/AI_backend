@@ -44,7 +44,7 @@ public class RawPictureHandlerTest {
 
         for (int i = 1; i <= 10; i++) {
             RawPictureRequest rawPictureRequest = new RawPictureRequest();
-            rawPictureRequest.setWorkspaceId(workspaceId);
+            rawPictureRequest.setWorkId(workspaceId);
             rawPictureRequest.setImageUrl("http://example.com/picture" + i + ".jpg");
 
             HttpEntity<RawPictureRequest> requestEntity = new HttpEntity<>(rawPictureRequest);
@@ -75,7 +75,7 @@ public class RawPictureHandlerTest {
         // 打印每个原始图片的详细信息
         for (RawPicture rawPicture : response.getBody()) {
             System.out.println("RawPicture ID: " + rawPicture.getId());
-            System.out.println("RawPicture Workspace ID: " + rawPicture.getWorkspaceId());
+            System.out.println("RawPicture Workspace ID: " + rawPicture.getWorkId());
             System.out.println("RawPicture URL: " + rawPicture.getImageUrl());
             System.out.println("--------------------------");
         }
@@ -100,7 +100,7 @@ public class RawPictureHandlerTest {
         // 打印每个原始图片的详细信息
         for (RawPicture rawPicture : response.getBody()) {
             System.out.println("RawPicture ID: " + rawPicture.getId());
-            System.out.println("RawPicture Workspace ID: " + rawPicture.getWorkspaceId());
+            System.out.println("RawPicture Workspace ID: " + rawPicture.getWorkId());
             System.out.println("RawPicture URL: " + rawPicture.getImageUrl());
             System.out.println("--------------------------");
         }
@@ -129,7 +129,7 @@ public class RawPictureHandlerTest {
         String url = BASE_URL + "/configure/" + pictureId;
 
         RawPictureRequest rawPictureRequestDTO = new RawPictureRequest();
-        rawPictureRequestDTO.setWorkspaceId(workspaceId);
+        rawPictureRequestDTO.setWorkId(workspaceId);
         rawPictureRequestDTO.setImageUrl("http://example.com/updatedPicture.jpg");
 
         HttpEntity<RawPictureRequest> requestEntity = new HttpEntity<>(rawPictureRequestDTO);

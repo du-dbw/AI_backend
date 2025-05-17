@@ -1,9 +1,7 @@
 package com.example.backend.dto;
 
-import java.util.List;
-
 public class Response<T> {
-    private int status;
+    private int code;
     private String message;
     private T data;
 
@@ -12,25 +10,25 @@ public class Response<T> {
     }
 
     // 有参构造函数（不带数据）
-    public Response(int status, String message) {
-        this.status = status;
+    public Response(int code, String message) {
+        this.code = code;
         this.message = message;
     }
 
     // 有参构造函数（带数据）
-    public Response(int status, String message, T data) {
-        this.status = status;
+    public Response(int code, String message, T data) {
+        this.code = code;
         this.message = message;
         this.data = data;
     }
 
     // Getters and Setters
-    public int getStatus() {
-        return status;
+    public int getCode() {
+        return code;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setCode(int code) {
+        this.code = code;
     }
 
     public String getMessage() {
@@ -52,7 +50,7 @@ public class Response<T> {
     @Override
     public String toString() {
         return "Response{" +
-                "status=" + status +
+                "status=" + code +
                 ", message='" + message + '\'' +
                 ", data=" + data +
                 '}';
