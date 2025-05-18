@@ -29,23 +29,41 @@ public class UsersHandlerTest {
         testRegister(restTemplate);
 
         // 测试登录功能
-        //testLogin(restTemplate);
+        testLogin(restTemplate);
 
+        testGetUserName(restTemplate);
         // 测试上传头像功能
         //testUploadAvatar(restTemplate);
 
         // 测试编辑个人简介功能
-        //testEditBio(restTemplate);
+        testEditBio(restTemplate);
+    }
+
+    private static final String BASE_URL_ME = "http://localhost:8181/me";
+
+    private static void testGetUserName(RestTemplate restTemplate) {
+        String url = BASE_URL_ME;
+
+        // 创建带有 token 的 Cookie
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Cookie", "5355b540-5aa7-457c-9cce-0093eef7fa1e"); // 使用 token "1" 进行测试
+
+        HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
+
+        ResponseEntity<Response> response = restTemplate.exchange(url, HttpMethod.GET, requestEntity, Response.class);
+
+        System.out.println("Get User Name Response Status Code: " + response.getStatusCode());
+        System.out.println("Get User Name Response Body: " + response.getBody());
     }
 
     private static void testRegister(RestTemplate restTemplate) {
         String url = BASE_URL + "/register";
 
         RegisterRequest registerRequest = new RegisterRequest();
-        registerRequest.setUsername("11111");
+        registerRequest.setUsername("111111");
         registerRequest.setPassword("1111111");
-        registerRequest.setEmail("111test@example.com");
-        registerRequest.setPhone("19550191289");
+        registerRequest.setEmail("1111test@example.com");
+        registerRequest.setPhone("19550191288");
 
         HttpEntity<RegisterRequest> requestEntity = new HttpEntity<>(registerRequest);
 
@@ -59,8 +77,8 @@ public class UsersHandlerTest {
         String url = BASE_URL + "/login";
 
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser11");
-        loginRequest.setPassword("password1234");
+        loginRequest.setUsername("111111");
+        loginRequest.setPassword("1111111");
 
         HttpEntity<LoginRequest> requestEntity = new HttpEntity<>(loginRequest);
 
@@ -84,7 +102,7 @@ public class UsersHandlerTest {
     private static void testUploadAvatar(RestTemplate restTemplate) {
         String url = BASE_URL_UPLOAD_AVATAR + "/{userId}";
 
-        // 创建文件对象（这里使用示例文件路径，你需要替换为实际存在的文件路径）
+        // 创建文件对象
         File file = new File("example.jpg"); // 替换为实际存在的图片文件路径
 
         // 构建请求参数

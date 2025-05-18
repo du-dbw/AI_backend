@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Sort;
+import com.example.backend.utils.TokenExtractInterceptor;
 
 @RestController
 @RequestMapping("/works")
@@ -37,7 +38,7 @@ public class CommentsHandler {
     @PostMapping("/{workId}/comments")
     public Response commentWork(@PathVariable Long workId, @RequestBody Map<String, String> requestBody, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -105,16 +106,69 @@ public class CommentsHandler {
         }
     }
 
-    // 提取 Token 的方法
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
+    @PostMapping("/{workId}/generate-text-to-image")
+    public Response generatetexttoimag(@PathVariable Long workId, @RequestBody Map<String, String> requestBody, HttpServletRequest request) {
+        // 从请求中提取Token并验证用户身份
+        String token = TokenExtractInterceptor.extractToken(request);
+        if (token == null) {
+            return new Response(401, "Unauthorized");
         }
-        return null;
+        Users currentUser = usersRepository.findByToken(token);
+        if (currentUser == null || currentUser.getTokenExpiry().isBefore(LocalDateTime.now())) {
+            return new Response(401, "Unauthorized");
+        }
+
+        try {
+            // 检查作品是否存在
+            Works work = worksRepository.findById(workId).orElseThrow(() -> new RuntimeException("Work not found"));
+
+            // 获取评论内容
+            String content = requestBody.get("content");
+            if (content == null || content.isEmpty()) {
+                return new Response(400, "Comment content is required");
+            }
+
+            // 创建评论记录
+            Comments comment = new Comments();
+            comment.setWorkId(workId);
+            comment.setUserId(currentUser.getId());
+            comment.setContent(content);
+            comment.setCreatedTime(LocalDateTime.now());
+            commentsRepository.save(comment);
+
+            // 更新作品评论数量
+            work.addComment();
+            worksRepository.save(work);
+
+            return new Response(0, "Comment successful");
+        } catch (Exception e) {
+            return new Response(500, "Comment failed");
+        }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // 提取 Token 的方法
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 }

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
+import com.example.backend.utils.TokenExtractInterceptor;
 
 
 @RestController
@@ -34,7 +34,7 @@ public class FollowHandler {
     public Response follow(HttpServletRequest request, @PathVariable String username) {
 
         // 从Cookie中提取Token
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
 
         if (token != null) {
             Users follower = usersRepository.findByToken(token);
@@ -78,7 +78,7 @@ public class FollowHandler {
     public Response unfollow(HttpServletRequest request, @PathVariable String username) {
 
         // 从Cookie中提取Token
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
 
         if (token != null) {
             Users follower = usersRepository.findByToken(token);
@@ -191,15 +191,15 @@ public class FollowHandler {
 
 
 
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 }

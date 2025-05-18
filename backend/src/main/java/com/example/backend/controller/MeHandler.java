@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.backend.utils.TokenExtractInterceptor;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/")
@@ -22,7 +25,7 @@ public class MeHandler {
     @GetMapping("/me")
     public Response getUserName(HttpServletRequest request) {
         // 从Cookie中提取Token
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         System.out.println("Extracted Token: " + token);
         Users user = null;
         if (token != null) {
@@ -31,22 +34,24 @@ public class MeHandler {
             System.out.println("User found: " + user);
             // 验证Token有效性及过期时间
             if (user != null && user.getTokenExpiry().isAfter(LocalDateTime.now())) {
-                return new Response(0, user.getName());
+                Map<String, String> data = Collections.singletonMap("username", user.getName());
+
+                return new Response(0, user.getName() , data);
             }
-            System.out.println("User not found: ");
+            //System.out.println("User not found: ");
         }
 
         return new Response(1, null);
     }
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 }

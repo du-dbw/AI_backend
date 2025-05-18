@@ -19,7 +19,7 @@ public interface WorksRepository extends JpaRepository<Works, Long> {
     Works findByWorkId(Long workId);
 
     // 根据用户 ID 查找该用户的所有作品
-    List<Works> findByUserId(Long userId);
+    List<Works> findByUserId(Long userId, Pageable pageable);
 
     // 根据作品 ID 删除作品（修复点）
     @Modifying
@@ -60,13 +60,13 @@ public interface WorksRepository extends JpaRepository<Works, Long> {
     List<Works> findAllByPublishedTrueOrderByCommentsDesc(Pageable pageable);
 
 
-    List<Works> searchByTitleContainingOrderByLikesDesc(String keyword, Pageable pageable);
+    List<Works> searchByNameContainingOrderByLikesDesc(String keyword, Pageable pageable);
 
-    List<Works> searchByTitleContainingOrderByCollectionCountDesc(String keyword, Pageable pageable);
+    List<Works> searchByNameContainingOrderByCollectionCountDesc(String keyword, Pageable pageable);
 
-    List<Works> searchByTitleContainingOrderByCommentsDesc(String keyword, Pageable pageable);
+    List<Works> searchByNameContainingOrderByCommentsDesc(String keyword, Pageable pageable);
 
-    List<Works> searchByTitleContainingOrderByCreatedTimeDesc(String keyword, Pageable pageable);
+    List<Works> searchByNameContainingOrderByCreatedTimeDesc(String keyword, Pageable pageable);
 
 
     default List<Works> findSimilarWorksByTitle(Long workId, double similarityThreshold) {
@@ -74,7 +74,7 @@ public interface WorksRepository extends JpaRepository<Works, Long> {
         if (targetWork == null) {
             return Collections.emptyList();
         }
-        String targetTitle = targetWork.getTitle();
+        String targetTitle = targetWork.getName();
 
         LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
 
@@ -84,7 +84,7 @@ public interface WorksRepository extends JpaRepository<Works, Long> {
         return findAll().stream()
                 .filter(work -> !work.getWorkId().equals(workId)) // 排除当前作品本身
                 .peek(work -> {
-                    String currentTitle = work.getTitle();
+                    String currentTitle = work.getName();
                     int distance = levenshteinDistance.apply(targetTitle, currentTitle);
                     double similarity = 1.0 - (double) distance / Math.max(targetTitle.length(), currentTitle.length());
                     similarityMap.put(work, similarity);
@@ -97,4 +97,5 @@ public interface WorksRepository extends JpaRepository<Works, Long> {
 
     List<Works> findByWorkIdIn(List<Long> workIds);
 
+    List<Works> findByUserIdAndPublishedFalse(Long id, Pageable pageable);
 }

@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
-
+import com.example.backend.utils.TokenExtractInterceptor;
 
 import com.example.backend.entity.Works.Works;
 import org.springframework.web.server.ResponseStatusException;
@@ -72,7 +72,7 @@ public class UsersHandler {
             // 生成唯一Token并设置过期时间
             String token = UUID.randomUUID().toString();
             user.setToken(token);
-            user.setTokenExpiry(LocalDateTime.now().plusHours(1)); // 1小时后过期
+            user.setTokenExpiry(LocalDateTime.now().plusHours(48)); // 1小时后过期
             usersRepository.save(user);
             //System.out.println("Token generated and saved: " + token);
             // 创建安全Cookie
@@ -83,8 +83,9 @@ public class UsersHandler {
             cookie.setSecure(true); // 仅HTTPS传输
             response.addCookie(cookie);
 
+            Map<String, String> data = Collections.singletonMap("username", user.getName());
 
-            return new Response(0, "Login successful");
+            return new Response(0, "Login successful",data);
         } else {
             return new Response(1, "Invalid username or password");
         }
@@ -131,7 +132,7 @@ public class UsersHandler {
     public ResponseEntity<Response<Map<String, Object>>> uploadAvatar(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
 
         // 提取 Token 并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new Response<>(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", null));
         }
@@ -200,7 +201,7 @@ public class UsersHandler {
             Long followersCount = followRepository.countByFolloweeId(user.getId());
             boolean followed = false;
 
-            String token = extractToken(request);
+            String token = TokenExtractInterceptor.extractToken(request);
             if (token != null) {
                 Users currentUser = usersRepository.findByToken(token);
                 if (currentUser != null && currentUser.getTokenExpiry().isAfter(LocalDateTime.now())) {
@@ -219,7 +220,7 @@ public class UsersHandler {
     @GetMapping("/{username}/profile")
     public Response getProfile(@PathVariable String username, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -263,7 +264,7 @@ public class UsersHandler {
     @PutMapping("/{username}/profile")
     public Response updateProfile(@PathVariable String username, @RequestBody Map<String, String> requestBody, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -308,7 +309,7 @@ public class UsersHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -334,8 +335,23 @@ public class UsersHandler {
         // 获取用户的所有已发布作品
         List<Works> worksList = worksRepository.findByUserIdAndPublishedTrue(user.getId(), pageable);
 
+        // 封装数据
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
+
+            workData.put("author", currentUser.getName());
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
+
         // 返回成功响应
-        return new Response(0, "Works retrieved successfully", worksList);
+        return new Response(0, "Works retrieved successfully", data);
     }
 
     // 获取用户收藏的作品列表
@@ -347,7 +363,7 @@ public class UsersHandler {
             HttpServletRequest request) {
 
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -385,23 +401,40 @@ public class UsersHandler {
         } else {
             worksList = Collections.emptyList();
         }
+        // 封装数据
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
 
+            Optional<Users> author = (usersRepository.findById(work.getUserId()));
+
+            workData.put("author", author.map(u -> u.getName()).orElse("Unknown"));
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
         // 返回成功响应
-        return new Response(0, "Collections retrieved successfully", worksList);
+        return new Response(0, "Collections retrieved successfully", data);
     }
 
 
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+    // 提取 Token 的方法
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
+
 
 
 }

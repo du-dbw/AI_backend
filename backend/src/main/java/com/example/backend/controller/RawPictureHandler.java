@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.repository.Works.Tags.TagsRepository;
-
+import com.example.backend.utils.TokenExtractInterceptor;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -59,7 +59,7 @@ public class RawPictureHandler {
     ) {
 
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
@@ -129,7 +129,7 @@ public class RawPictureHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
@@ -167,7 +167,7 @@ public class RawPictureHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
@@ -212,7 +212,7 @@ public class RawPictureHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
@@ -241,7 +241,7 @@ public class RawPictureHandler {
         }
 
         // 更新 Work 实体信息
-        work.setTitle(name);
+        work.setName(name);
         work.setDescription(description);
         worksRepository.save(work);
 
@@ -275,7 +275,7 @@ public class RawPictureHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response(401, "Unauthorized"));
         }
@@ -299,7 +299,7 @@ public class RawPictureHandler {
 
         // 构造响应数据
         Map<String, Object> data = new HashMap<>();
-        data.put("name", work.getTitle());
+        data.put("name", work.getName());
         data.put("description", work.getDescription());
         data.put("tags", tags);
 
@@ -310,17 +310,17 @@ public class RawPictureHandler {
 
 
 
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
 
 }

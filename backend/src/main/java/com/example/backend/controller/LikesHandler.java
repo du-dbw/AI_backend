@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.example.backend.entity.Users.Users;
-
+import com.example.backend.utils.TokenExtractInterceptor;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
@@ -37,7 +37,7 @@ public class LikesHandler {
     @PostMapping("/{workId}/like")
     public Response likeWork(@PathVariable Long workId, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -77,7 +77,7 @@ public class LikesHandler {
     @Transactional
     public Response unlikeWork(@PathVariable Long workId, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -113,7 +113,7 @@ public class LikesHandler {
     @GetMapping("/{workId}/like")
     public Response getLikeStatus(@PathVariable Long workId, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -141,17 +141,17 @@ public class LikesHandler {
     }
 
     // 提取 Token 的方法
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+//    private String extractToken(HttpServletRequest request) {
+//        Cookie[] cookies = request.getCookies();
+//        if (cookies != null) {
+//            for (Cookie cookie : cookies) {
+//                if ("userToken".equals(cookie.getName())) {
+//                    return cookie.getValue();
+//                }
+//            }
+//        }
+//        return null;
+//    }
 
 
 }

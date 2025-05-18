@@ -1,6 +1,5 @@
 package com.example.backend.controller;
 
-import com.example.backend.dto.Works.WorksRequest;
 import com.example.backend.dto.Response;
 import com.example.backend.entity.Users.Users;
 import com.example.backend.entity.Works.Works;
@@ -27,7 +26,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
-
+import com.example.backend.utils.TokenExtractInterceptor;
 
 import com.example.backend.dto.Works.WorksCreatRequest;
 
@@ -60,7 +59,7 @@ public class WorksHandler {
     public Response createWork(@RequestBody WorksCreatRequest worksCreatRequest , HttpServletRequest request) {
 
          //从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -81,7 +80,7 @@ public class WorksHandler {
         // 创建一个新的作品对象
         Works newWork = new Works();
         newWork.setUserId(userId);
-        newWork.setTitle(title);
+        newWork.setName(title);
         newWork.setDescription(description);
         //newWork.setImageUrl(imageUrl);
         newWork.setLikes(likes);
@@ -93,8 +92,12 @@ public class WorksHandler {
         // 保存到数据库
         worksRepository.save(newWork);
 
+        // 构造返回的数据对象
+        Map<String, Object> workData = new HashMap<>();
+        workData.put("workId", newWork.getWorkId());
+
         // 返回成功响应
-        return new Response(0, "Work created successfully", newWork.getWorkId());
+        return new Response(0, "Work created successfully",workData);
     }
 
     @GetMapping("")
@@ -105,7 +108,7 @@ public class WorksHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -115,24 +118,45 @@ public class WorksHandler {
         }
 
         //Users currentUser = usersRepository.findByName("11111");
+
+
+        // 构造分页请求
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
         // 根据状态筛选作品
         List<Works> worksList;
         if ("published".equals(status)) {
-            worksList = worksRepository.findByPublishedTrue(PageRequest.of(page - 1, pageSize));
+            worksList = worksRepository.findByUserIdAndPublishedTrue(currentUser.getId(), pageable);
         } else if ("draft".equals(status)) {
-            worksList = worksRepository.findByPublishedFalse(PageRequest.of(page - 1, pageSize));
+            worksList = worksRepository.findByUserIdAndPublishedFalse(currentUser.getId(), pageable);
         } else {
-            worksList = worksRepository.MYfindAll(PageRequest.of(page - 1, pageSize));
+            worksList = worksRepository.findByUserId(currentUser.getId(), pageable);
         }
 
+        // 封装数据
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
+
+            Optional<Users> author = (usersRepository.findById(work.getUserId()));
+
+            workData.put("author", author.map(u -> u.getName()).orElse("Unknown"));
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
+
         // 返回成功响应
-        return new Response(0, "Works retrieved successfully", worksList);
+        return new Response(0, "Works retrieved successfully", data);
     }
 
     @PostMapping("/{workid}/publish")
     public Response publishWork(@PathVariable Long workid, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -163,7 +187,7 @@ public class WorksHandler {
             HttpServletRequest request
     ) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -187,7 +211,7 @@ public class WorksHandler {
 
         // 构造响应数据
         Map<String, Object> data = new HashMap<>();
-        data.put("name", work.getTitle());
+        data.put("name", work.getName());
         data.put("description", work.getDescription());
         data.put("raw_pictures", rawPictures.stream().map(rp -> {
             Map<String, Object> rawPictureMap = new HashMap<>();
@@ -212,7 +236,7 @@ public class WorksHandler {
             HttpServletRequest request
     ) {
         // 可以选择性地从请求中提取Token并验证用户身份，根据需求决定是否需要认证
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -241,9 +265,23 @@ public class WorksHandler {
                 worksList = worksRepository.findAllByPublishedTrueOrderByCreatedTimeDesc(pageable);
                 break;
         }
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
 
+            Optional<Users> author = (usersRepository.findById(work.getUserId()));
+
+            workData.put("author", author.map(u -> u.getName()).orElse("Unknown"));
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
         // 返回成功响应
-        return new Response(0, "Popular works retrieved successfully", worksList);
+        return new Response(0, "Popular works retrieved successfully", data);
     }
 
     @GetMapping("/search")
@@ -261,22 +299,36 @@ public class WorksHandler {
         List<Works> worksList;
         switch (sort) {
             case "like_count":
-                worksList = worksRepository.searchByTitleContainingOrderByLikesDesc(keyword, pageable);
+                worksList = worksRepository.searchByNameContainingOrderByLikesDesc(keyword, pageable);
                 break;
             case "collection_count":
-                worksList = worksRepository.searchByTitleContainingOrderByCollectionCountDesc(keyword, pageable);
+                worksList = worksRepository.searchByNameContainingOrderByCollectionCountDesc(keyword, pageable);
                 break;
             case "comment_count":
-                worksList = worksRepository.searchByTitleContainingOrderByCommentsDesc(keyword, pageable);
+                worksList = worksRepository.searchByNameContainingOrderByCommentsDesc(keyword, pageable);
                 break;
             case "time":
             default:
-                worksList = worksRepository.searchByTitleContainingOrderByCreatedTimeDesc(keyword, pageable);
+                worksList = worksRepository.searchByNameContainingOrderByCreatedTimeDesc(keyword, pageable);
                 break;
         }
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
 
+            Optional<Users> author = (usersRepository.findById(work.getUserId()));
+
+            workData.put("author", author.map(u -> u.getName()).orElse("Unknown"));
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
         // 返回成功响应
-        return new Response(0, "Search results retrieved successfully", worksList);
+        return new Response(0, "Search results retrieved successfully", data);
     }
 
     @GetMapping("/{workid}/view")
@@ -291,12 +343,13 @@ public class WorksHandler {
         // 构造返回的数据对象
         Map<String, Object> data = new HashMap<>();
         data.put("workid", work.getWorkId());
-        data.put("name", work.getTitle());
+        data.put("name", work.getName());
         data.put("description", work.getDescription());
 
         Optional<Users> user = usersRepository.findById(work.getUserId());
 
-        data.put("author", user.map(Users::getName).orElse("Unknown"));
+        // 显式获取用户名
+        data.put("author", user.map(u -> u.getName()).orElse("Unknown"));
         data.put("time", work.getCreatedTime());
         data.put("img", work.getImageUrl());
         data.put("like_count", work.getLikes());
@@ -320,7 +373,7 @@ public class WorksHandler {
 
         // 作品基本信息
         data.put("workid", work.getWorkId());
-        data.put("name", work.getTitle());
+        data.put("name", work.getName());
         data.put("description", work.getDescription());
         data.put("time", work.getCreatedTime().toEpochSecond(ZoneOffset.UTC)); // 转换为秒级时间戳
         data.put("like_count", work.getLikes());
@@ -335,7 +388,7 @@ public class WorksHandler {
         data.put("avtar", author.getAvatar());
 
         // 获取当前用户信息（如果已登录）
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -399,17 +452,32 @@ public class WorksHandler {
     @GetMapping("/{workid}/related_works")
     public Response getRelatedWorks(@PathVariable Long workid) {
         // 调用findSimilarWorksByTitle方法来找到相关的作品，并按相似度排序
-        List<Works> relatedWorks = worksRepository.findSimilarWorksByTitle(workid, 0); // 假设相似度阈值为0
+        List<Works> worksList = worksRepository.findSimilarWorksByTitle(workid, 0); // 假设相似度阈值为0
+        List<Map<String, Object>> data = worksList.stream().map(work -> {
+            Map<String, Object> workData = new HashMap<>();
+            workData.put("workid", work.getWorkId());
+            workData.put("name", work.getName());
+            workData.put("description", work.getDescription());
+            workData.put("img", work.getImageUrl());
+            workData.put("like_count", work.getLikes());
 
-        return new Response(0, "获取成功", relatedWorks);
+            Optional<Users> author = (usersRepository.findById(work.getUserId()));
+
+            workData.put("author", author.map(u -> u.getName()).orElse("Unknown"));
+
+            workData.put("time", work.getCreatedTime());
+            return workData;
+        }).collect(Collectors.toList());
+        return new Response(0, "获取成功", data);
     }
 
 
     // 新增收藏作品的 API
     @PostMapping("/{workId}/collect")
     public Response collectWork(@PathVariable Long workId, HttpServletRequest request) {
+        //System.out.println("1111111111111");
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -451,7 +519,7 @@ public class WorksHandler {
     @Transactional
     public Response uncollectWork(@PathVariable Long workId, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -488,7 +556,7 @@ public class WorksHandler {
     @GetMapping("/{workId}/collect")
     public Response getCollectStatus(@PathVariable Long workId, HttpServletRequest request) {
         // 从请求中提取Token并验证用户身份
-        String token = extractToken(request);
+        String token = TokenExtractInterceptor.extractToken(request);
         if (token == null) {
             return new Response(401, "Unauthorized");
         }
@@ -514,18 +582,8 @@ public class WorksHandler {
         }
     }
 
-    // 提取 Token 的方法
-    private String extractToken(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("userToken".equals(cookie.getName())) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return null;
-    }
+
+
 
 
 

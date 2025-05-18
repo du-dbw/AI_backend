@@ -11,6 +11,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.example.backend.Filter.TokenAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
 import java.util.Collections;
 
@@ -45,6 +47,7 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults())
                 .addFilterBefore(new TokenAuthenticationFilter(userRepository), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

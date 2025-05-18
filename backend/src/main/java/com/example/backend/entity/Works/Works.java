@@ -17,7 +17,7 @@ public class Works {
     private Long userId;
 
     @Column(length = 255, nullable = false)
-    private String title;
+    private String name;
 
     @Column(length = 65535)
     private String description;
@@ -51,9 +51,9 @@ public class Works {
     }
 
     // 全参构造方法
-    public Works(Long userId, String title, String description, String imageUrl) {
+    public Works(Long userId, String name, String description, String imageUrl) {
         this.userId = userId;
-        this.title = title;
+        this.name = name;
         this.description = description;
         this.imageUrl = imageUrl;
         this.createdTime = LocalDateTime.now();
@@ -130,12 +130,12 @@ public class Works {
         this.userId = userId;
     }
 
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String title) {
+        this.name = title;
     }
 
     public String getDescription() {
@@ -199,7 +199,7 @@ public class Works {
         return "Works{" +
                 "workId=" + workId +
                 ", userId=" + userId +
-                ", title='" + title + '\'' +
+                ", title='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", likes=" + likes +
